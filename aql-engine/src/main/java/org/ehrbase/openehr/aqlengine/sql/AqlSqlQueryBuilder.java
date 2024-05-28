@@ -52,7 +52,6 @@ import org.ehrbase.openehr.aqlengine.asl.model.query.AslStructureQuery;
 import org.ehrbase.openehr.aqlengine.asl.model.query.AslStructureQuery.AslSourceRelation;
 import org.ehrbase.openehr.aqlengine.sql.postprocessor.AqlSqlQueryPostProcessor;
 import org.ehrbase.openehr.dbformat.RmAttributeAlias;
-import org.ehrbase.openehr.dbformat.jooq.prototypes.ObjectDataTablePrototype;
 import org.ehrbase.openehr.sdk.aql.dto.path.AqlObjectPath.PathNode;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -75,6 +74,7 @@ import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.TableLike;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -213,7 +213,8 @@ public class AqlSqlQueryBuilder {
             // if the magnitude is needed for ORDER BY, it is added to the GROUP BY
             rq.getGroupByDvOrderedMagnitudeFields().stream()
                     .map(f -> AdditionalSQLFunctions.jsonb_dv_ordered_magnitude((Field<JSONB>)
-                            FieldUtils.field(aslQueryToTable.getDataTable(f.getInternalProvider()), f, true)))
+                                    FieldUtils.field(aslQueryToTable.getDataTable(f.getInternalProvider()), f, true))
+                            .cast(SQLDataType.NUMERIC))
                     .forEach(query::addGroupBy);
 
             rq.getOrderByFields().stream()
@@ -266,7 +267,8 @@ public class AqlSqlQueryBuilder {
     private static TableLike<Record> buildPathDataQuery(
             AslPathDataQuery aslData, AslQuery target, AslQueryTables aslQueryToTable) {
         Table<?> targetTable = aslQueryToTable.getDataTable(target);
-        Function<String, Field<JSONB>> dataFieldProvider = colName -> FieldUtils.aliasedField(targetTable, aslData, colName, JSONB.class);
+        Function<String, Field<JSONB>> dataFieldProvider =
+                colName -> FieldUtils.aliasedField(targetTable, aslData, colName, JSONB.class);
 
         return DSL.select(aslData.getSelect().stream()
                 .map(AslColumnField.class::cast)
