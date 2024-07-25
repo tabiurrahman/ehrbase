@@ -40,7 +40,7 @@
       <groupId>org.ehrbase.openehr</groupId>
       <artifactId>configuration</artifactId>
     </dependency>
-  </dependencies>
+ </dependencies>
 
   <build>
     <finalName>ehrbase</finalName>
